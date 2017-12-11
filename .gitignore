@@ -11,6 +11,7 @@ xxhsum
 xxhsum32
 xxhsum_privateXXH
 xxhsum_inlinedXXH
+xxhbench
 
 # Mac OS-X artefacts
 *.dSYM

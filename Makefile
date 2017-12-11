@@ -67,7 +67,7 @@ LIBXXH = libxxhash.$(SHARED_EXT_VER)
 
 
 .PHONY: default
-default: lib xxhsum
+default: lib xxhsum xxhbench
 
 .PHONY: all
 all: lib xxhsum xxhsum32 xxhsum_inlinedXXH
@@ -77,6 +77,9 @@ xxhsum xxhsum32: xxhash.c xxhsum.c
 	$(CC) $(FLAGS) $^ -o $@$(EXT)
 	ln -sf $@ xxh32sum
 	ln -sf $@ xxh64sum
+
+xxhbench: xxhbench.c xxhash.c
+	$(CC) $(FLAGS) $^ -o $@$(EXT)
 
 xxhsum_inlinedXXH: xxhsum.c
 	$(CC) $(FLAGS) -DXXH_PRIVATE_API $^ -o $@$(EXT)
@@ -203,7 +206,8 @@ listL120:  # extract lines >= 120 characters in *.{c,h}, by Takayuki Matsuoka (n
 .PHONY: clean
 clean: clean-xxhsum-c
 	@$(RM) core *.o libxxhash.*
-	@$(RM) xxhsum$(EXT) xxhsum32$(EXT) xxhsum_inlinedXXH$(EXT) xxh32sum xxh64sum
+	@$(RM) xxhsum$(EXT) xxhsum32$(EXT) xxhsum_inlinedXXH$(EXT) xxh32sum \
+		   xxh64sum xxhbench
 	@echo cleaning completed
 
 
