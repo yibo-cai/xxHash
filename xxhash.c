@@ -114,6 +114,8 @@ static void* XXH_memcpy(void* dest, const void* src, size_t size) { return memcp
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"
 
+#include <arm_neon.h>
+
 
 /* *************************************
 *  Compiler Specific Options
@@ -289,14 +291,24 @@ FORCE_INLINE U32 XXH32_endian_align(const void* input, size_t len, U32 seed, XXH
         U32 v3 = seed + 0;
         U32 v4 = seed - PRIME32_1;
 
+        uint32x4_t vprime1 = vdupq_n_u32(PRIME32_1);
+        uint32x4_t vprime2 = vdupq_n_u32(PRIME32_2);
+
+        uint32_t v[4] = { v1, v2, v3, v4 };
+        uint32x4_t vv = vld1q_u32(v);
+        uint32x4_t vinput;
+
         do {
-            v1 = XXH32_round(v1, XXH_get32bits(p)); p+=4;
-            v2 = XXH32_round(v2, XXH_get32bits(p)); p+=4;
-            v3 = XXH32_round(v3, XXH_get32bits(p)); p+=4;
-            v4 = XXH32_round(v4, XXH_get32bits(p)); p+=4;
+              vinput = vld1q_u32((const uint32_t *)p);
+              vv = vmlaq_u32(vv, vinput, vprime2);
+              vv = vsliq_n_u32(vshrq_n_u32(vv, 19), vv, 13);
+              vv = vmulq_u32(vv, vprime1);
+              p += 16;
         } while (p<=limit);
 
-        h32 = XXH_rotl32(v1, 1) + XXH_rotl32(v2, 7) + XXH_rotl32(v3, 12) + XXH_rotl32(v4, 18);
+        vst1q_u32(v, vv);
+
+        h32 = XXH_rotl32(v[0], 1) + XXH_rotl32(v[1], 7) + XXH_rotl32(v[2], 12) + XXH_rotl32(v[3], 18);
     } else {
         h32  = seed + PRIME32_5;
     }
